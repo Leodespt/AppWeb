@@ -1,0 +1,18 @@
+{
+    "background_color": "#ffffff",
+    "description": "Game",
+    "dir": "ltr",
+    "display": "standalone",
+    "name": "The Mega Game",
+    "orientation": "any",
+    "scope": "https://basis-gopher-mobile-f4c7.onrender.com/assets/",
+    "short_name": "Game",
+    "start_url": "https://basis-gopher-mobile-f4c7.onrender.com/assets/",
+    "theme_color": "#ffffff",
+    "categories": [],
+    "screenshots": [],
+    "icons": [
+ 
+    ],
+    "shortcuts": []
+  }
