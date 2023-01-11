@@ -14,7 +14,7 @@ app.index_string = '''<!DOCTYPE html>
 <html>
 <head>
 <title>My Game</title>
-<link rel="manifest" href="https://basis-gopher-mobile-f4c7.onrender.com/assets/manifest.json" />
+<link rel="manifest" href="/Users/leonarddesportes/Desktop/AppWeb/assets/manifest.json" />
 {%metas%}
 {%favicon%}
 {%css%}
@@ -30,7 +30,7 @@ app.index_string = '''<!DOCTYPE html>
     window.addEventListener('load', ()=> {
       navigator
       .serviceWorker
-      .register('../assets/sw01.js')
+      .register('/Users/leonarddesportes/Desktop/AppWeb/assets/sw01.js')
       .then(()=>console.log("Ready."))
       .catch(()=>console.log("Err..."));
     });
@@ -348,4 +348,5 @@ def displayClick(btn1, btn2):
 
 
 if __name__ == "__main__":
+    
     app.run(debug=False)
