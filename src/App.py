@@ -10,6 +10,11 @@ external_stylesheets=[dbc.themes.SPACELAB]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+from flask import jsonify
+@app.route('/manifest.json')
+def manifest():
+    return jsonify("../assets/manifest.json")
+
 app.index_string = '''<!DOCTYPE html>
 <html>
 <head>
