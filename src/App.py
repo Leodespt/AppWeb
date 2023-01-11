@@ -4,7 +4,6 @@ import dash_bootstrap_components as dbc
 
 #external_stylesheets = ["/workspaces/MyPortfolioTracker/project/pages/style.css"]
 
-
 from Joueur import Joueur
 
 external_stylesheets=[dbc.themes.SPACELAB]
