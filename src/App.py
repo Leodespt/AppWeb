@@ -199,7 +199,6 @@ def update_output(clicks):
         str_joueurs = ''
         for j in joueurs:
             str_joueurs = str_joueurs +'\n - Joueur '+str(j.numero)+' : '+j.nom
-#Un Defi sera lancé toutes les  {} minutes,\n\n
         return f'Chaque joueur recevra un defi à réaliser pendant le temps imparti.\n\nLes joueurs sont :\n {str_joueurs}'
 
 
@@ -212,19 +211,28 @@ popup_bouton = html.Div(
     className="d-grid gap-2 col-4 mx-auto",
 )
 
+#global game 
+#game = []
+
 @app.callback(
     Output("popup", "is_open"),
     [Input("open-game", "n_clicks")],
     State("popup", "is_open"),
 )
-def toggle_modal(n, is_open=False): 
+def toggle_modal(n, is_open): 
     if n:
         return not is_open
     else : 
         global start_time
-        global game
         start_time = datetime.datetime.now()
-        #game = Game(df,joueurs,start_time,0)
+
+        #game.append(Game(df,joueurs,len(joueurs),start_time,0))
+
+        #game.defi_list = df
+        #game.joueur_list = joueurs
+        #game.n_joueurs = len(joueurs)
+        #game.start_time = start_time
+
         return is_open
 
 #%% Timer 
@@ -259,14 +267,15 @@ timer_popup = html.Div(
         id="time-popup",
         size="sm",
         style={'top': 0,'left': 550},
-        is_open = False#True
+        is_open = True
         )
     ]
 )
 
 #timer
 @app.callback(Output('timer', 'children'),
-    [Input('interval', 'n_intervals')])
+    [Input('interval', 'n_intervals')]
+)
 def update_interval(n):
     time_now = datetime.datetime.now()
     time_delta = datetime.timedelta(hours=0, minutes=game_time)
@@ -276,159 +285,84 @@ def update_interval(n):
     mins, secs = divmod(rem, 60)
     return '{:02d}:{:02d}'.format(mins, secs)
 
-
-#%% Defi 
+#%% Defis
 
 defi_bouton = html.Div([
-    html.Div(id="defi-bouton",className="d-grid gap-2 col-4 mx-auto")
+    html.Div([
+        *[dbc.Button(f"Joueur  {i} : ", id=f"button_{i}") for i in range(1, 11)],
+        *[dbc.Modal(id=f"modal_{i}", children=[
+            html.H2(f"Joueur  {i} : ",className="d-grid gap-2 col-4 mx-auto"),
+            html.Div(id=f"output_{i}",className="d-grid gap-2 col-8 mx-auto")],
+            size="lg", backdrop= True,is_open=False,className="d-grid gap-2 col-3 mx-auto",
+            centered=True,style={'white-space': 'pre','text-align':'center','font-weight': 'bold'}) for i in range(1, 11)],
+    ],className="d-grid gap-2 col-3 mx-auto")
 ])
 
 @app.callback(
-    Output("defi-bouton", "children"),
-    #[Input("open-game", "n_clicks")],
-    Input("popup", "is_open")
+    [Output(f"output_{i}", "children") for i in range(1, 11)],
+    [Input(f"button_{i}", "n_clicks") for i in range(1, 11)],
 )
-def update_output(is_open):
-    if is_open:
-        boutons = []
-        for i in range(len(joueurs)):
-            bouton = html.Div([html.Button(f"Joueur  {i} : {joueurs[i].nom}",id = f"joueur-{i}")],className="d-grid gap-2 col-4 mx-auto")
-            
+def update_output(*args):
+    outputs = []
+    for i, clicks in enumerate(args):
+        if clicks:
             defi = df.sample(n=1).reset_index(drop = True)
-            defi_text = f'Ton Defi : \n\n*{str(defi["defi"][0])}*\n\nLe defi vaut {str(defi["pts"][0])} points.\n\nBonne chance champion.'
-            
-            defi_popup = dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle(f"Joueur {i} : {joueurs[i].nom}")),
-                            html.Div([dcc.Markdown(children=defi_text)],style={'width':'75%', 'margin':25, 'textAlign': 'center'})
-                        ],
-                        id=f"popup-{i}",
-                        is_open = False,
-                        className="d-grid gap-2 col-4 mx-auto")                 
-                
-            boutons.append(bouton)
-            boutons.append(defi_popup)
+            defi_text = f"\nTon Defi :\n\n {str(defi['defi'][0])}\n\nLe defi vaut {str(defi['pts'][0])} points.\n\nBonne chance champion.\n\n"
 
+            outputs.append(defi_text)
+        else:
+            outputs.append(f"Bouton non cliqué")
+    return outputs
 
-            for j in range(len(joueurs)):
-                @app.callback(
-                    Output(f"popup-{j}", "is_open"),
-                    [Input(f"joueur-{j}", "n_clicks")],
-                    [State(f"popup-{j}", "is_open")],
-                )
-                def toggle_modal(n, is_open=False):
-                    if n is not None:
-                        return not is_open
-                    else : return is_open
-
-        return boutons
-
-'''
-html.Div(
-    [
-        dbc.Modal(
-            [
-                dbc.ModalHeader(dbc.ModalTitle("Joueur 1: "+joueurs[i].nom)),
-                #html.Div(id=,className="d-grid gap-2 col-2 mx-auto"),
-                html.Div([dcc.Markdown(children=defi_text)],style={'width':'75%', 'margin':25, 'textAlign': 'center'})
-            ],
-            id=f"popup-{i}",
-            is_open = False
-        )],
-    className="d-grid gap-2 col-4 mx-auto"),
-'''
-
+for i in range(1, 11):
+    @app.callback(
+        Output(f"modal_{i}", "is_open"),
+        [Input(f"button_{i}", "n_clicks")],
+        [State(f"modal_{i}", "is_open")],
+    )
+    def toggle_modal(n, is_open):
+        if n:
+            return not is_open
+        else:
+            return is_open
 
 
 #%% Popup Layout
-"""
+
 @app.callback(
-    Output('output-joueurs',"children"),
-    [Input('open-game','n_clicks')], 
+    Output('output-njoueurs',"children"),
+    [Input('popup','is_open')], 
 )
-def update_output(clicks):
-    if clicks is not None:
-        str_joueurs = ''
+def update_output(is_open):
+    if is_open:
+        str_joueurs = 'Chaque joueur doit accomplir le defi lui etant associé.\nVous decouvrirez votre défi en cliquant sur le bouton associé à votre numéro de joueur.\n'
         for j in joueurs:
-            str_joueurs = str_joueurs +'\n\n - Joueur '+str(j.numero)+' : '+j.nom
+            str_joueurs = str_joueurs +'\n - Joueur '+str(j.numero)+' : '+j.nom
         return str_joueurs
-"""
+
+
 popup = html.Div(
     [
         dbc.Modal(
             [
                 dbc.ModalHeader(dbc.ModalTitle("Your Turn")),
-
                 timer_popup_bouton,
                 timer_popup,
 
                 #ameliorer layout des joueurs
-                #html.Div(id = 'output-joueurs',className="d-grid gap-2 col-4 mx-auto"),
+                html.Div(id = 'output-njoueurs',style={'white-space': 'pre','text-align':'center','font-weight': 'bold'},
+                className="d-grid gap-2 col-6 mx-auto"),
 
                 dcc.Markdown(children=space),
                 dcc.Markdown(children=space),
-
-
                 defi_bouton,
-
-                #ameliorer boutons
-                #dbc.Button('Joueur 1', id='btn-nclicks-1'),
-                #html.Div([dbc.Button('Joueur 2', id='btn-nclicks-2')],style={ 'marginTop': 25, 'marginLeft': 485, 'width' : '15vh'}, className="d-grid"),
-
-                #html.Div(id='joueur-choisi',className="d-grid gap-2 col-4 mx-auto"),
-                #dcc.Markdown(children=space),
-                #html.Div(id ='popup-defi', className="d-grid gap-2 col-4 mx-auto"),
-                #dcc.Markdown(children=space),
             ],
             id="popup",
-            fullscreen=True,
-            is_open = False
+            fullscreen= True,
+            is_open = False,
         ),
     ]
 )
-
-#%% Defis
-'''
-@app.callback(
-    Output('joueur-choisi', 'children'),
-    Input('btn-nclicks-1', 'n_clicks'),
-    Input('btn-nclicks-2', 'n_clicks'),
-)
-def displayClick(btn1, btn2):
-
-    #choix du defi et selection du defi dans la BDD
-    if "btn-nclicks-1" == ctx.triggered_id:
-        defi = df.sample(n=1).reset_index(drop = True)
-        defi_text = 'Ton Defi : \n'+'\n*'+str(defi['defi'][0])+'*\n\nLe defi vaut '+str(defi['pts'][0])+' points.\n\nBonne chance champion.'
-        joueurs[1-1].defi_actuel = defi
-        return html.Div(
-                [
-                    dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("Joueur 1: "+joueurs[1-1].nom)),
-                            html.Div(id='joueur-choisi',className="d-grid gap-2 col-2 mx-auto"),
-                            html.Div([dcc.Markdown(children=defi_text)],style={'width':'75%', 'margin':25, 'textAlign': 'center'})
-                        ],
-                        id="popup",
-                        is_open = False
-                    )],
-                className="d-grid gap-2 col-4 mx-auto"),
-
-    elif "btn-nclicks-2" == ctx.triggered_id:
-        defi = df.sample(n=1)
-        defi_text = 'Ton Defi : \n'+'\n'+str(defi['defi']).replace('Name: defi, dtype: object','')+'\n\nLe Defi vaut '+str(int(defi['pts']))+' points.\n\nBonne chance champion.'
-        return html.Div(
-                [   dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("Defi : "+'joueur-choisi')),
-                            html.Div(id='joueur-choisi',className="d-grid gap-2 col-2 mx-auto"),
-                            html.Div([dcc.Markdown(children=defi_text)],style={'width':'75%', 'margin':25, 'textAlign': 'center'})
-                        ],
-                        id="popup",
-                        is_open = False
-                    )],
-                className="d-grid gap-2 col-4 mx-auto"),
-'''
 
 #%% Layout
 
@@ -466,13 +400,14 @@ app.layout = dbc.Container([
 
         # Debut du jeu
         popup_bouton,
-        html.Div(id = 'btn-joueur'),
+        #html.Div(id = 'btn-joueur'),
         popup,
 
         dash.page_container
         ], align='center',className="g-0",
     )
 ], fluid=True)
+
 
 
 #%% Main
